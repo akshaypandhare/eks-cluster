@@ -3,6 +3,11 @@ output "arn" {
   value       = aws_eks_cluster.this.arn
 }
 
+output "cluster_name" {
+  description = "returns a string"
+  value       = aws_eks_cluster.this.name
+}
+
 output "certificate_authority" {
   description = "returns a list of object"
   value       = aws_eks_cluster.this.certificate_authority
