@@ -28,6 +28,16 @@ output "id" {
   value       = aws_eks_cluster.this.id
 }
 
+output "eks_cluster_identity_oidc_issuer" {
+  description = "The OIDC Identity issuer for the cluster"
+  value       = join("", aws_eks_cluster.this.identity.0.oidc.0.issuer)
+}
+
+output "eks_cluster_identity_oidc_issuer_arn" {
+  description = "The OIDC Identity issuer ARN for the cluster that can be used to associate IAM roles with a service account"
+  value       = join("", aws_iam_openid_connect_provider.default.arn)
+}
+
 output "identity" {
   description = "returns a list of object"
   value       = aws_eks_cluster.this.identity
