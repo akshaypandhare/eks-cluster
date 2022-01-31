@@ -1,151 +1,24 @@
 provider "aws" {
-    region = "us-west-2"
+  region = var.aws_region
 }
 
-resource "aws_eks_cluster" "this" {
-  # enabled_cluster_log_types - (optional) is a type of set of string
-  enabled_cluster_log_types = var.enabled_cluster_log_types
-  # name - (required) is a type of string
-  name = var.cluster_name
-  # role_arn - (required) is a type of string
-  role_arn = aws_iam_role.eks-master.arn
-  # tags - (optional) is a type of map of string
-  tags = var.tags
-  # version - (optional) is a type of string
-  version = var.cluster_version
-
-  dynamic "encryption_config" {
-    for_each = var.encryption_config
-    content {
-      # resources - (required) is a type of set of string
-      resources = encryption_config.value["resources"]
-
-      dynamic "provider" {
-        for_each = encryption_config.value.provider
-        content {
-          # key_arn - (required) is a type of string
-          key_arn = provider.value["key_arn"]
-        }
-      }
-
-    }
-  }
-
-  dynamic "kubernetes_network_config" {
-    for_each = var.kubernetes_network_config
-    content {
-      # service_ipv4_cidr - (optional) is a type of string
-      service_ipv4_cidr = kubernetes_network_config.value["service_ipv4_cidr"]
-    }
-  }
-
-  dynamic "timeouts" {
-    for_each = var.timeouts
-    content {
-      # create - (optional) is a type of string
-      create = timeouts.value["create"]
-      # delete - (optional) is a type of string
-      delete = timeouts.value["delete"]
-      # update - (optional) is a type of string
-      update = timeouts.value["update"]
-    }
-  }
-
-  vpc_config {
-      endpoint_private_access = var.endpoint_private_access 
-      endpoint_public_access = var.endpoint_public_access
-      public_access_cidrs  = var.public_access_cidrs 
-      security_group_ids = [aws_security_group.eks-master.id]
-      subnet_ids = var.subnet_ids
-  }
-
-  #dynamic "vpc_config" {
-  #  for_each = var.vpc_config
-  #  content {
-  #    # endpoint_private_access - (optional) is a type of bool
-  #    endpoint_private_access = vpc_config.value["endpoint_private_access"]
-  #    # endpoint_public_access - (optional) is a type of bool
-  #    endpoint_public_access = vpc_config.value["endpoint_public_access"]
-  #    # public_access_cidrs - (optional) is a type of set of string
-  #    public_access_cidrs = vpc_config.value["public_access_cidrs"]
-  #    # security_group_ids - (optional) is a type of set of string
-  ###    security_group_ids = vpc_config.value["security_group_ids"]
-     # # subnet_ids - (required) is a type of set of string
-  #    subnet_ids = vpc_config.value["subnet_ids"]
-  ## }
-  #}
-
+module "label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  name       = var.cluster_name
+  stage      = var.env_name
+  delimiter  = "-"
+  attributes = ["cluster"]
 }
 
-data "tls_certificate" "cluster" {
-  url   = aws_eks_cluster.this.identity.0.oidc.0.issuer
-}
-
-resource "aws_iam_openid_connect_provider" "default" {
-  url   = aws_eks_cluster.this.identity.0.oidc.0.issuer
-
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.cluster.certificates.0.sha1_fingerprint]
-}
-    
-## EKS cluster IAM role.
-
-resource "aws_iam_role" "eks-master" {
-  name = "${var.cluster_name}-eks-master"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-
-}
-
-resource "aws_iam_role_policy_attachment" "eks-master-AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks-master.name
-}
-
-resource "aws_iam_role_policy_attachment" "eks-master-AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks-master.name
-}
-
-
-## EKS cluster Security group.
-
-resource "aws_security_group" "eks-master" {
-  name        = "${var.cluster_name}-eks-master"
-  description = "Cluster communication with worker nodes"
-  vpc_id      = var.vpc_id
-
-  dynamic "ingress" {
-    for_each = var.sg_protocols
-    content {
-      from_port = ingress.value["from_port"]
-      to_port = ingress.value["to_port"]
-      protocol = ingress.value["protocol"]
-      cidr_blocks = ingress.value["cidr_block"]
-    }
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.cluster_name}-eks-master"
-  }
+module "eks_cluster" {
+  source                            = "cloudposse/eks-cluster/aws"
+  version                           = "0.45.0"
+  vpc_id                            = var.vpc_id
+  region                            = var.aws_region
+  subnet_ids                        = var.subnet_ids
+  oidc_provider_enabled             = true
+  context                           = module.label.context
+  cluster_encryption_config_enabled = false
+  apply_config_map_aws_auth         = false
 }
