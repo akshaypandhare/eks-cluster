@@ -1,63 +1,84 @@
-output "arn" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.arn
+output "security_group_id" {
+  description = "ID of the created Security Group for the EKS cluster"
+  value       = module.eks_cluster.security_group_id
 }
 
-output "cluster_name" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.name
+output "security_group_arn" {
+  description = "ARN of the created Security Group for the EKS cluster"
+  value       = module.eks_cluster
 }
 
-output "certificate_authority" {
-  description = "returns a list of object"
-  value       = aws_eks_cluster.this.certificate_authority
+output "security_group_name" {
+  description = "Name of the created Security Group for the EKS cluster"
+  value       = module.eks_cluster.security_group_arn
 }
 
-output "created_at" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.created_at
+output "eks_cluster_id" {
+  description = "The name of the cluster"
+  value       = module.eks_cluster.eks_cluster_id
 }
 
-output "endpoint" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.endpoint
+output "eks_cluster_arn" {
+  description = "The Amazon Resource Name (ARN) of the cluster"
+  value       = module.eks_cluster.eks_cluster_arn
 }
 
-output "id" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.id
+output "eks_cluster_endpoint" {
+  description = "The endpoint for the Kubernetes API server"
+  value       = module.eks_cluster.eks_cluster_endpoint
+}
+
+output "eks_cluster_version" {
+  description = "The Kubernetes server version of the cluster"
+  value       = module.eks_cluster.eks_cluster_version
 }
 
 output "eks_cluster_identity_oidc_issuer" {
   description = "The OIDC Identity issuer for the cluster"
-  value       = aws_eks_cluster.this.identity.0.oidc.0.issuer
+  value       = module.eks_cluster.eks_cluster_identity_oidc_issuer
 }
 
 output "eks_cluster_identity_oidc_issuer_arn" {
   description = "The OIDC Identity issuer ARN for the cluster that can be used to associate IAM roles with a service account"
-  value       = aws_iam_openid_connect_provider.default.arn
+  value       = module.eks_cluster.eks_cluster_identity_oidc_issuer_arn
 }
 
-output "identity" {
-  description = "returns a list of object"
-  value       = aws_eks_cluster.this.identity
+output "eks_cluster_certificate_authority_data" {
+  description = "The Kubernetes cluster certificate authority data"
+  value       = module.eks_cluster.eks_cluster_certificate_authority_data
 }
 
-output "platform_version" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.platform_version
+output "eks_cluster_managed_security_group_id" {
+  description = "Security Group ID that was created by EKS for the cluster. EKS creates a Security Group and applies it to ENI that is attached to EKS Control Plane master nodes and to any managed workloads"
+  value       = module.eks_cluster.eks_cluster_managed_security_group_id
 }
 
-output "status" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.status
+output "eks_cluster_role_arn" {
+  description = "ARN of the EKS cluster IAM role"
+  value       = module.eks_cluster.eks_cluster_role_arn
 }
 
-output "version" {
-  description = "returns a string"
-  value       = aws_eks_cluster.this.version
+output "kubernetes_config_map_id" {
+  description = "ID of `aws-auth` Kubernetes ConfigMap"
+  value       = module.eks_cluster.kubernetes_config_map_id
 }
 
-output "this" {
-  value = aws_eks_cluster.this
+output "cluster_encryption_config_enabled" {
+  description = "If true, Cluster Encryption Configuration is enabled"
+  value       = module.eks_cluster.cluster_encryption_config_enabled
+}
+
+output "cluster_encryption_config_resources" {
+  description = "Cluster Encryption Config Resources"
+  value       = module.eks_cluster.cluster_encryption_config_resources
+}
+
+output "cluster_encryption_config_provider_key_arn" {
+  description = "Cluster Encryption Config KMS Key ARN"
+  value       = module.eks_cluster.cluster_encryption_config_provider_key_arn
+}
+
+output "cluster_encryption_config_provider_key_alias" {
+  description = "Cluster Encryption Config KMS Key Alias ARN"
+  value       = module.eks_cluster.cluster_encryption_config_provider_key_alias
 }
