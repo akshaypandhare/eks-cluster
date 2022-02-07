@@ -21,4 +21,5 @@ module "eks_cluster" {
   context                           = module.label.context
   cluster_encryption_config_enabled = false
   apply_config_map_aws_auth         = false
+  map_additional_iam_roles          = var.map_additional_iam_roles
 }
