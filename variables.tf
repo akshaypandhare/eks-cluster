@@ -22,3 +22,15 @@ variable "subnet_ids" {
   description = "Required"
   type        = list(string)
 }
+
+variable "map_additional_iam_roles" {
+  description = "Additional IAM roles to add to `config-map-aws-auth` ConfigMap"
+
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+
+  default = []
+}
